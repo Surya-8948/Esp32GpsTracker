@@ -81,6 +81,18 @@ label{display:flex;flex-direction:column;gap:3px;margin-bottom:8px;color:var(--m
 #recPill.on .dot{background:var(--er);box-shadow:0 0 8px var(--er);animation:blink 1.2s infinite}
 @keyframes blink{50%{opacity:.25}}
 .hhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px}
+#flashBg{position:absolute;inset:0;z-index:1340;pointer-events:none;opacity:0;transition:opacity .18s}
+#flashBg.on.e{opacity:1;background:rgba(239,68,68,.38)}
+#flashBg.on.w{opacity:1;background:rgba(245,158,11,.32)}
+#flashBg.on.s,#flashBg.on.i{opacity:1;background:rgba(56,189,248,.28)}
+#flash{position:absolute;top:12px;left:12px;right:12px;z-index:1410;display:none;padding:14px 16px;border-radius:16px;background:rgba(8,15,30,.96);border:1px solid var(--er);color:#fff;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+#flash.show{display:block;animation:flashpop .28s ease}
+#flash.e{border-color:var(--er);box-shadow:0 0 0 2px rgba(239,68,68,.35),0 12px 40px rgba(0,0,0,.5)}
+#flash.w{border-color:var(--wn)}
+#flash.s{border-color:var(--ok)}
+#flash b{display:block;font-size:16px;margin-bottom:3px}
+#flash small{color:#cbd5e1;font-size:13px}
+@keyframes flashpop{from{transform:translateY(-14px) scale(.98);opacity:0}to{transform:none;opacity:1}}
 @media(max-width:800px){
   body{flex-direction:column-reverse}
   #side{width:100%;height:50dvh;border:0}
@@ -94,7 +106,7 @@ label{display:flex;flex-direction:column;gap:3px;margin-bottom:8px;color:var(--m
 <aside id="side">
 <header>
   <div class="logo"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2"><path d="M12 21s7-7.2 7-12a7 7 0 1 0-14 0c0 4.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.3" fill="#fff" stroke="none"/></svg></div>
-  <div style="flex:1"><b id="tt">GPS Tracker</b><br><small style="color:var(--mu)">ESP8266 / ESP32 · MQTT</small></div>
+  <div style="flex:1"><b id="tt">GPS Tracker</b><br><small style="color:var(--mu)">Surya Bajpai · Lucknow</small></div>
   <div><span id="pc" class="pill off">Offline</span><span id="pm" class="pill off">MQTT Off</span></div>
 </header>
 <nav>
@@ -137,7 +149,14 @@ label{display:flex;flex-direction:column;gap:3px;margin-bottom:8px;color:var(--m
   <div id="gl"></div>
 </section>
 <section class="pane" id="p-ev"><button class="b" id="ce" style="margin-bottom:8px">Clear log</button><div id="evl"></div></section>
-<section class="pane" id="p-set"><div id="sf"></div><button class="b p" id="sv">Save &amp; Connect</button><button class="b" id="dm" style="width:100%;margin-top:8px">▶ Toggle demo data</button></section>
+<section class="pane" id="p-set"><div id="sf"></div><button class="b p" id="sv">Save &amp; Connect</button><button class="b" id="dm" style="width:100%;margin-top:8px">▶ Toggle demo data</button>
+<div class="it" style="margin-top:14px">
+  <small>Developer</small>
+  <b>Surya Bajpai</b>
+  <small style="text-transform:none;letter-spacing:0;margin-top:6px">Lucknow, Uttar Pradesh · India</small>
+  <small style="text-transform:none;letter-spacing:0">GPS Tracker v1.1 · ESP32 / ESP8266 · MQTT</small>
+</div>
+</section>
 </aside>
 
 <div id="map">
@@ -171,6 +190,8 @@ label{display:flex;flex-direction:column;gap:3px;margin-bottom:8px;color:var(--m
     <div data-a="del">Delete Object</div>
   </div>
   <div id="toasts"></div>
+  <div id="flashBg"></div>
+  <div id="flash"><b id="flashT">Event</b><small id="flashM"></small></div>
   <div id="ld"><div class="sp"></div></div>
 </div>
 
@@ -191,17 +212,18 @@ const decodePayload=m=>{
 };
 const CFG_TYPES={snapshot:1,settings:1,circle:1,polygon:1,route:1,all:1,cfg:1};
 const T={
-  en:{live:'Live',fence:'Geofence',ev:'Events',set:'Settings',hist:'History',fit:'Fit trip',golive:'Go live',deltrip:'Delete trip',skip:'Skip stops during replay',notrips:'No trips yet. Connect a device or start demo data in Settings.',pts:'points',dist:'Distance',dur:'Duration',maxs:'Max speed',avgs:'Avg speed',idle:'Idle',rec:'Recording',replay:'Replay',finished:'Trip finished',histclr:'History cleared',tripdel:'Trip deleted',needtrip:'Select a trip first',confirm:'Click again to confirm',space:'Space play · ← → seek'},
-  hi:{live:'लाइव',fence:'जियोफेंस',ev:'घटनाएँ',set:'सेटिंग्स',hist:'इतिहास',fit:'ट्रिप फिट',golive:'लाइव जाएँ',deltrip:'ट्रिप हटाएँ',skip:'रीप्ले में स्टॉप छोड़ें',notrips:'अभी कोई ट्रिप नहीं। डिवाइस जोड़ें या सेटिंग्स में डेमो चालू करें।',pts:'बिंदु',dist:'दूरी',dur:'अवधि',maxs:'अधिकतम गति',avgs:'औसत गति',idle:'निष्क्रिय',rec:'रिकॉर्डिंग',replay:'रीप्ले',finished:'ट्रिप समाप्त',histclr:'इतिहास साफ़',tripdel:'ट्रिप हटाई गई',needtrip:'पहले ट्रिप चुनें',confirm:'पुष्टि के लिए फिर क्लिक करें',space:'स्पेस प्ले · ← → सीक'},
-  es:{live:'En vivo',fence:'Geocerca',ev:'Eventos',set:'Ajustes',hist:'Historial',fit:'Ajustar viaje',golive:'En vivo',deltrip:'Borrar viaje',skip:'Saltar paradas en la repetición',notrips:'Aún no hay viajes. Conecta un dispositivo o activa la demo en Ajustes.',pts:'puntos',dist:'Distancia',dur:'Duración',maxs:'Vel. máx',avgs:'Vel. media',idle:'Inactivo',rec:'Grabando',replay:'Repetición',finished:'Viaje terminado',histclr:'Historial borrado',tripdel:'Viaje eliminado',needtrip:'Selecciona un viaje',confirm:'Haz clic otra vez para confirmar',space:'Espacio play · ← → buscar'}
+  en:{live:'Live',fence:'Geofence',ev:'Events',set:'Settings',hist:'History',fit:'Fit trip',golive:'Go live',deltrip:'Delete trip',skip:'Skip stops during replay',notrips:'No trips yet. Connect a device or start demo data in Settings.',pts:'points',dist:'Distance',dur:'Duration',maxs:'Max speed',avgs:'Avg speed',idle:'Idle',rec:'Recording',replay:'Replay',finished:'Trip finished',histclr:'History cleared',tripdel:'Trip deleted',needtrip:'Select a trip first',confirm:'Click again to confirm',space:'Space play · ← → seek',alerts:'Sound + notification on events'},
+  hi:{live:'लाइव',fence:'जियोफेंस',ev:'घटनाएँ',set:'सेटिंग्स',hist:'इतिहास',fit:'ट्रिप फिट',golive:'लाइव जाएँ',deltrip:'ट्रिप हटाएँ',skip:'रीप्ले में स्टॉप छोड़ें',notrips:'अभी कोई ट्रिप नहीं। डिवाइस जोड़ें या सेटिंग्स में डेमो चालू करें।',pts:'बिंदु',dist:'दूरी',dur:'अवधि',maxs:'अधिकतम गति',avgs:'औसत गति',idle:'निष्क्रिय',rec:'रिकॉर्डिंग',replay:'रीप्ले',finished:'ट्रिप समाप्त',histclr:'इतिहास साफ़',tripdel:'ट्रिप हटाई गई',needtrip:'पहले ट्रिप चुनें',confirm:'पुष्टि के लिए फिर क्लिक करें',space:'स्पेस प्ले · ← → सीक',alerts:'इवेंट पर आवाज़ + नोटिफिकेशन'},
+  es:{live:'En vivo',fence:'Geocerca',ev:'Eventos',set:'Ajustes',hist:'Historial',fit:'Ajustar viaje',golive:'En vivo',deltrip:'Borrar viaje',skip:'Saltar paradas en la repetición',notrips:'Aún no hay viajes. Conecta un dispositivo o activa la demo en Ajustes.',pts:'puntos',dist:'Distancia',dur:'Duración',maxs:'Vel. máx',avgs:'Vel. media',idle:'Inactivo',rec:'Grabando',replay:'Repetición',finished:'Viaje terminado',histclr:'Historial borrado',tripdel:'Viaje eliminado',needtrip:'Selecciona un viaje',confirm:'Haz clic otra vez para confirmar',space:'Espacio play · ← → buscar',alerts:'Sonido + notificación en eventos'}
 };
 const tr=k=>(T[S.lang]||T.en)[k]||T.en[k]||k;
 const loc=()=>({en:'en-IN',hi:'hi-IN',es:'es'}[S.lang]||undefined);
-let S={host:'broker.hivemq.com',port:8884,path:'/mqtt',ssl:1,user:'',pass:'',topic:'gps/tracker01',name:'GPS Tracker',interval:5,maxSpeed:80,lowBat:3.5,units:'m',lang:'en',dark:1};
+let S={host:'broker.hivemq.com',port:8884,path:'/mqtt',ssl:1,user:'',pass:'',topic:'gps/tracker01',name:'GPS Tracker',interval:5,maxSpeed:80,lowBat:3.5,units:'m',lang:'en',dark:1,alerts:1};
 try{const saved=J.parse(lsGet('gpsS','{}'));if(saved&&typeof saved=='object')Object.assign(S,saved)}catch(e){}
 S.host=String(S.host||'').trim();S.path=String(S.path||'/mqtt');S.topic=String(S.topic||'gps/tracker01').trim();
 S.port=clampNum(S.port,1,65535,8884);S.interval=clampNum(S.interval,1,3600,5);
 S.maxSpeed=clampNum(S.maxSpeed,1,500,80);S.lowBat=clampNum(S.lowBat,0,100,3.5);
+S.alerts=S.alerts==null?1:+S.alerts;
 S.lang=T[S.lang]?S.lang:'en';S.units=S.units=='i'?'i':'m';
 const unit=()=>S.units=='m'?{s:'km/h',k:1,a:'m',ak:1,d:'km'}:{s:'mph',k:.621371,a:'ft',ak:3.28084,d:'mi'};
 
@@ -252,8 +274,59 @@ function toast(m,t='i'){
   box.append(e);setTimeout(()=>{e.remove()},3500);
   while(box.children.length>5)box.firstChild.remove();
 }
+let audioCtx=null,flashTimer=0;
+function beep(l){
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+    if(!audioCtx)audioCtx=new AC();
+    if(audioCtx.state==='suspended')audioCtx.resume();
+    const now=audioCtx.currentTime,o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.type='square';o.frequency.value=l==='e'?880:l==='w'?700:520;
+    g.gain.setValueAtTime(0.0001,now);g.gain.exponentialRampToValueAtTime(0.16,now+.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,now+(l==='e'?0.55:0.32));
+    o.connect(g);g.connect(audioCtx.destination);o.start(now);o.stop(now+.6);
+    if(l==='e'){
+      const o2=audioCtx.createOscillator(),g2=audioCtx.createGain();
+      o2.type='square';o2.frequency.value=660;
+      g2.gain.setValueAtTime(0.0001,now+.18);g2.gain.exponentialRampToValueAtTime(0.14,now+.2);
+      g2.gain.exponentialRampToValueAtTime(0.0001,now+.55);
+      o2.connect(g2);g2.connect(audioCtx.destination);o2.start(now+.18);o2.stop(now+.6);
+    }
+  }catch(e){}
+}
+function flashMsg(type,msg,l){
+  const box=$('#flash'),bg=$('#flashBg');if(!box)return;
+  $('#flashT').textContent=type;$('#flashM').textContent=msg;
+  box.className='show '+(l||'i');
+  if(bg){bg.className='on '+(l||'i');setTimeout(()=>bg.classList.remove('on'),280)}
+  clearTimeout(flashTimer);flashTimer=setTimeout(()=>{box.className='';if(bg)bg.className=''},4200);
+}
+function webNotify(type,msg){
+  try{
+    if(!window.Notification||Notification.permission!=='granted')return;
+    const n=new Notification(type,{body:msg,tag:'gps-'+type,silent:false,renotify:true});
+    setTimeout(()=>{try{n.close()}catch(e){}},6000);
+  }catch(e){}
+}
+function askNotify(){
+  try{if(S.alerts&&window.Notification&&Notification.permission==='default')Notification.requestPermission()}catch(e){}
+}
+function pingAlert(type,msg,l){
+  if(!S.alerts)return;
+  flashMsg(type,msg,l);
+  try{if(navigator.vibrate)navigator.vibrate(l==='e'?[200,90,220,90,200]:[180,60,180])}catch(e){}
+  let native=0;
+  try{if(window.AndroidTracker&&AndroidTracker.eventAlert){AndroidTracker.eventAlert(String(type),String(msg),String(l||'i'));native=1}}catch(e){}
+  if(!native){beep(l);webNotify(type,msg)}
+}
 const EV=[];
-function evt(type,msg,l='i'){EV.unshift({t:new Date().toLocaleTimeString(loc()),type:String(type),msg:String(msg),l});if(EV.length>100)EV.length=100;renderEv();toast(type+': '+msg,l)}
+function evt(type,msg,l='i'){
+  EV.unshift({t:new Date().toLocaleTimeString(loc()),type:String(type),msg:String(msg),l});
+  if(EV.length>100)EV.length=100;
+  renderEv();
+  toast(type+': '+msg,l);
+  pingAlert(type,msg,l);
+}
 const renderEv=()=>{$('#evl').innerHTML=EV.map(e=>`<div class="ev ${e.l}"><small>${esc(e.t)}</small><b>${esc(e.type)}</b> ${esc(e.msg)}</div>`).join('')||'<small>No events</small>'};
 const FL={};const flag=(k,c,t,m,l)=>{if(c&&!FL[k])evt(t,m,l);if(!c)FL[k]=0;else FL[k]=1};
 
@@ -781,7 +854,7 @@ $('#hDel').onclick=()=>{
   HIST.pts=HIST.pts.filter(p=>p.tid!=id);invalidateTrips();persistH(true);goLive();renderTrips();toast(tr('tripdel'),'s');
 };
 
-const SF=[['host','MQTT Broker'],['port','Port','number'],['path','WebSocket path'],['ssl','Use secure WebSocket (wss)','chk'],['user','Username'],['pass','Password','password'],['topic','Topic'],['name','Device Name'],['interval','Update interval (s)','number'],['maxSpeed','Overspeed limit (km/h)','number'],['lowBat','Low battery (V)','number'],['units','Units','sel:m|Metric,i|Imperial'],['lang','Language','sel:en|English,hi|हिन्दी,es|Español'],['dark','Dark mode','chk']];
+const SF=[['host','MQTT Broker'],['port','Port','number'],['path','WebSocket path'],['ssl','Use secure WebSocket (wss)','chk'],['user','Username'],['pass','Password','password'],['topic','Topic'],['name','Device Name'],['interval','Update interval (s)','number'],['maxSpeed','Overspeed limit (km/h)','number'],['lowBat','Low battery (V)','number'],['units','Units','sel:m|Metric,i|Imperial'],['lang','Language','sel:en|English,hi|हिन्दी,es|Español'],['dark','Dark mode','chk'],['alerts','Sound + notification on events','chk']];
 $('#sf').innerHTML=SF.map(([k,l,t='text'])=>`<label>${l}${t=='chk'?`<input type="checkbox" id="s_${k}">`:t.startsWith('sel')?`<select id="s_${k}">${t.slice(4).split(',').map(o=>{const[a,b]=o.split('|');return`<option value="${a}">${b}</option>`}).join('')}</select>`:`<input type="${t}" id="s_${k}" ${k=='pass'?'autocomplete="off"':''} ${t=='number'?'min="0"':''}>`}</label>`).join('');
 SF.forEach(([k,,t])=>{const e=$('#s_'+k);if(!e)return;if(t=='chk')e.checked=!!S[k];else e.value=S[k]??''});
 function apply(){
@@ -792,6 +865,7 @@ function apply(){
   recState(lastRx&&Date.now()-lastRx<4000);
   if(RP.on){const trp=tripOf(RP.tripId);if(trp)renderStats(trp)}
   setTimeout(()=>map.invalidateSize(),50);
+  if(S.alerts)askNotify();
 }
 $('#sv').onclick=()=>{
   SF.forEach(([k,,t])=>{
@@ -836,6 +910,7 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 window.addEventListener('pagehide',()=>persistH(true));
 window.addEventListener('beforeunload',()=>persistH(true));
 
+document.addEventListener('pointerdown',()=>{try{if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();askNotify()}catch(e){}},{once:true});
 apply();load();loadH();renderTrips();renderEv();conn();
 map.whenReady(()=>map.invalidateSize());
 setTimeout(()=>{$('#ld').classList.add('h');map.invalidateSize()},1200);
